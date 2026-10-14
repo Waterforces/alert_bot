@@ -1,0 +1,27 @@
+{
+  "name": "calendar-alert-bot",
+  "version": "1.0.0",
+  "description": "Cross-platform family event alert bot for LINE and Discord on Cloudflare Workers",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "vitest run",
+    "discord:register": "node scripts/register-discord-commands.mjs",
+    "db:migrate:local": "wrangler d1 execute DB --local --file=./migrations/0001_initial_schema.sql",
+    "db:migrate:remote": "wrangler d1 execute DB --remote --file=./migrations/0001_initial_schema.sql --yes"
+  },
+  "keywords": ["line", "discord", "bot", "calendar", "cloudflare-workers", "d1"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "hono": "^4.6.14",
+    "tweetnacl": "^1.0.3"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261006.1",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8",
+    "wrangler": "^4.150.0"
+  }
+}

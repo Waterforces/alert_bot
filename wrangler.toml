@@ -1,0 +1,17 @@
+name = "calendar-alert-bot"
+main = "src/index.ts"
+compatibility_date = "2024-10-01"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+# Scheduled Cron Triggers
+# 1. "1 17 * * *" = 17:01 UTC = 00:01 AM Bangkok Time (UTC+7) daily countdown check
+# 2. "*/15 * * * *" = Periodic 15-minute check for event-time double announcement
+[triggers]
+crons = ["1 17 * * *", "*/15 * * * *"]
+
+# Cloudflare D1 Database Binding
+[[d1_databases]]
+binding = "DB"
+database_name = "calendar-alert-db"
+database_id = "ddc90fd1-b1f6-4486-89e3-ce037a63b206"
