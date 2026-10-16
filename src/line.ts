@@ -261,7 +261,7 @@ async function processLineCommand(
     await replyLineText(
       token,
       replyToken,
-      `✅ Event Created!\n#${event.id}: ${event.title}\n🗓 Date: ${formatDateDisplay(event.event_date)}${timeStr}\n\nAlerts scheduled for 14, 7, 3, 1, and 0 days.`
+      `✅ Event Created!\n#${event.id}: ${event.title}\n🗓 Date: ${formatDateDisplay(event.event_date)}${timeStr}\n\nAlerts scheduled for 14, 7, 3, 2, 1, and 0 days.`
     );
 
     // 📢 Cross-channel announcement to Discord!

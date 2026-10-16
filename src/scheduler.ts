@@ -16,7 +16,7 @@ import {
 // import { sendLinePushMessage } from './line'; // [Testing Mode: LINE disabled]
 import { sendDiscordAlert } from './discord';
 
-const COUNTDOWN_MILESTONES = [14, 7, 3, 1, 0];
+const COUNTDOWN_MILESTONES = [14, 7, 3, 2, 1, 0];
 
 /**
  * Main dispatcher invoked by Cloudflare Scheduled Cron events.
@@ -37,7 +37,7 @@ export async function handleScheduledEvent(
 }
 
 /**
- * 00:01 AM Daily Countdown Check (D-14, D-7, D-3, D-1, D-0)
+ * 00:01 AM Daily Countdown Check (D-14, D-7, D-3, D-2, D-1, D-0)
  */
 export async function runDailyCountdownRoutine(env: Env): Promise<void> {
   const today = getBangkokTodayString();
@@ -180,6 +180,8 @@ function getMilestoneBadge(days: number): { label: string; emoji: string } {
       return { label: "TODAY'S EVENT", emoji: '🚨' };
     case 1:
       return { label: 'Tomorrow', emoji: '⏳' };
+    case 2:
+      return { label: 'In 2 Days', emoji: '⏳' };
     case 3:
       return { label: 'In 3 Days', emoji: '⏳' };
     case 7:

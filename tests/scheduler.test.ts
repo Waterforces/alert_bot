@@ -58,6 +58,28 @@ describe('Scheduler Auto-Deletion Logic', () => {
       expect(deleteSpy).not.toHaveBeenCalled();
     });
 
+    it('should fire countdown alert and NOT delete event on Day 2 milestone', async () => {
+      const event: EventRecord = {
+        id: 20,
+        title: 'Project Presentation',
+        event_date: '2026-10-16', // 2 days from 2026-10-14
+        event_time: '14:00',
+        created_by_platform: 'discord',
+        created_by_user: 'User1',
+        created_at: '2026-10-01',
+      };
+
+      vi.spyOn(dbModule, 'getUpcomingEvents').mockResolvedValue([event]);
+      vi.spyOn(dbModule, 'hasAlertBeenSent').mockResolvedValue(false);
+      const recordSpy = vi.spyOn(dbModule, 'recordAlertSent').mockResolvedValue();
+      const deleteSpy = vi.spyOn(dbModule, 'deleteEvent').mockResolvedValue({ deleted: true, event });
+
+      await runDailyCountdownRoutine(mockEnv);
+
+      expect(recordSpy).toHaveBeenCalledWith(mockEnv.DB, 20, 'countdown', 2, 'discord');
+      expect(deleteSpy).not.toHaveBeenCalled();
+    });
+
     it('should NOT delete event on Day 1 milestone', async () => {
       const event: EventRecord = {
         id: 2,

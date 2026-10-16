@@ -13,6 +13,7 @@ Powered by **Cloudflare Workers (TypeScript)**, **Cloudflare D1 (Serverless SQLi
   * ⏳ **14 Days before**
   * ⏳ **7 Days before (1 week)**
   * ⏳ **3 Days before**
+  * ⏳ **2 Days before**
   * ⏳ **1 Day before (tomorrow)**
   * 🚨 **Day 0 (Today at 00:01 AM Bangkok Time)**
 * **Double Announcement**: If an event has a specific start time (e.g. `18:00`), on the day of the event it receives a second announcement at that exact time!
