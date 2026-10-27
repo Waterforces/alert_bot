@@ -4,6 +4,7 @@ import {
   addEvent,
   getUpcomingEvents,
   getEventsByDate,
+  getEventsByMonth,
   deleteEvent,
   purgePastEvents,
   searchEventsByTitle
@@ -12,8 +13,12 @@ import {
   parseInputDate,
   parseInputTime,
   getBangkokTodayString,
+  getBangkokNow,
   calculateDaysRemaining,
-  formatDateDisplay
+  formatDateDisplay,
+  parseMonthInput,
+  generateMonthlyCalendarGrid,
+  getMonthDaysInfo
 } from './date';
 // import { sendLinePushMessage } from './line'; // [Testing Mode: LINE disabled]
 
@@ -330,6 +335,77 @@ export async function handleDiscordInteraction(
         description: listContent,
         color: 0x5865F2, // Blurple
         footer: { text: `Total: ${matches.length} matching event(s)` },
+      });
+    }
+
+    // --- /month command ---
+    if (commandName === 'month') {
+      const monthArg = getOption('month');
+      const yearArg = getOption('year');
+
+      const parsed = parseMonthInput(monthArg, yearArg);
+      if (!parsed) {
+        return respondMessage(
+          `⚠️ Invalid month format: \`${monthArg}\`. Please use 1-12 or MM/YY (e.g. \`10\` or \`10/26\`).`
+        );
+      }
+
+      const { year, month } = parsed;
+      const mmStr = String(month).padStart(2, '0');
+      const yearMonthStr = `${year}-${mmStr}`;
+
+      // Purge past events prior to today
+      const todayIso = getBangkokTodayString();
+      await purgePastEvents(env.DB, todayIso);
+
+      // Fetch all events for the target month (ordered by event_date ASC, event_time ASC)
+      const events = await getEventsByMonth(env.DB, yearMonthStr);
+
+      // Extract set of day numbers that have events
+      const eventDays = new Set<number>();
+      for (const e of events) {
+        const d = parseInt(e.event_date.split('-')[2], 10);
+        if (!isNaN(d)) {
+          eventDays.add(d);
+        }
+      }
+
+      // Today's date object in Bangkok
+      const nowBkk = getBangkokNow();
+      const todayDate = {
+        year: nowBkk.getFullYear(),
+        month: nowBkk.getMonth() + 1,
+        day: nowBkk.getDate(),
+      };
+
+      // Generate the ANSI calendar grid
+      const calendarGrid = generateMonthlyCalendarGrid(year, month, eventDays, todayDate);
+
+      // Format the event list below the calendar
+      const { monthName } = getMonthDaysInfo(year, month);
+      let eventListContent = '';
+
+      if (events.length === 0) {
+        eventListContent = `🎉 *No events scheduled in ${monthName} ${year}.*`;
+      } else {
+        const formattedEvents = events.map((e, idx) => {
+          const daysLeft = calculateDaysRemaining(e.event_date, todayIso);
+          const isToday = daysLeft === 0;
+          const todayBadge = isToday ? ' 🚨 **[TODAY!]**' : '';
+          const time = e.event_time ? ` @ **${e.event_time}**` : ' *(All Day)*';
+          return `**${idx + 1}.** 🗓️ **${formatDateDisplay(e.event_date)}**${time} • **${e.title}**${todayBadge} \`#${e.id}\``;
+        });
+
+        eventListContent = `📋 **Events in ${monthName} ${year} (${events.length}):**\n` + formattedEvents.join('\n');
+      }
+
+      const description = `${calendarGrid}\n🔴 **(Date)** = Today  •  • = Has Event\n\n${eventListContent}`;
+
+      return respondEmbed({
+        title: `🗓️ Family Calendar: ${monthName} ${year}`,
+        description,
+        color: 0x5865F2,
+        footer: { text: `Total: ${events.length} event(s) in ${monthName} • To add: /add • To delete: /delete id: [ID]` },
       });
     }
   }

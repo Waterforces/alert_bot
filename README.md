@@ -78,6 +78,8 @@ Calendar_alert/
   `/delete id: 3`
 * **Find / Search Event**:  
   `/find query: Meeting`
+* **Monthly Calendar View**:  
+  `/month` *(view current month)* or `/month month: 11` or `/month month: 11/26`
 
 ---
 

@@ -140,6 +140,22 @@ export async function getEventsByDate(db: D1Database, dateStr: string): Promise<
 }
 
 /**
+ * Retrieves all events for a given year and month (e.g. "2026-10").
+ */
+export async function getEventsByMonth(db: D1Database, yearMonthStr: string): Promise<EventRecord[]> {
+  const { results } = await db
+    .prepare(
+      `SELECT * FROM events
+       WHERE event_date LIKE ?
+       ORDER BY event_date ASC, event_time ASC`
+    )
+    .bind(`${yearMonthStr}-%`)
+    .all<EventRecord>();
+
+  return results || [];
+}
+
+/**
  * Deletes an event by its ID. Returns true if an event was deleted.
  */
 export async function deleteEvent(db: D1Database, id: number): Promise<{ deleted: boolean; event: EventRecord | null }> {

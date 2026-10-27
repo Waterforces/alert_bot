@@ -93,6 +93,24 @@ const commands = [
       },
     ],
   },
+  {
+    name: 'month',
+    description: 'View monthly calendar with today highlighted and events indicated',
+    options: [
+      {
+        name: 'month',
+        description: 'Optional month (1-12 or MM/YY, e.g. 10 or 10/26; defaults to current month)',
+        type: 3, // STRING
+        required: false,
+      },
+      {
+        name: 'year',
+        description: 'Optional year (e.g. 2026 or 26)',
+        type: 3, // STRING
+        required: false,
+      },
+    ],
+  },
 ];
 
 async function registerCommands() {

@@ -115,3 +115,167 @@ export function formatDateDisplay(isoDate: string): string {
   if (parts.length !== 3) return isoDate;
   return `${parts[2]}/${parts[1]}/${parts[0]}`;
 }
+
+export const MONTH_NAMES = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
+/**
+ * Returns metadata about a month: total days, starting day of week (0=Monday, 6=Sunday), and month name.
+ * month is 1-indexed (1 = January, 12 = December).
+ */
+export function getMonthDaysInfo(year: number, month: number): {
+  totalDays: number;
+  startDayOfWeek: number;
+  monthName: string;
+} {
+  // Day 0 of next month is the last day of the current month
+  const totalDays = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  // 0 = Sunday, 1 = Monday ... 6 = Saturday in JS
+  // We convert to ISO Monday-first: Monday = 0, Tuesday = 1 ... Sunday = 6
+  const jsDay = new Date(Date.UTC(year, month - 1, 1)).getUTCDay();
+  const startDayOfWeek = (jsDay + 6) % 7;
+  const monthName = MONTH_NAMES[month - 1] || '';
+
+  return { totalDays, startDayOfWeek, monthName };
+}
+
+/**
+ * Parses user input for month and year, defaulting to current month/year in Bangkok timezone if not provided.
+ */
+export function parseMonthInput(
+  monthStr?: string,
+  yearStr?: string,
+  defaultYear?: number
+): { year: number; month: number } | null {
+  const now = getBangkokNow();
+  let year = defaultYear || now.getFullYear();
+  let month = now.getMonth() + 1;
+
+  if (monthStr !== undefined && monthStr.trim() !== '') {
+    const cleaned = monthStr.trim();
+    if (cleaned.includes('/') || cleaned.includes('-')) {
+      const parts = cleaned.split(/[\/\-]/);
+      const parsedMonth = parseInt(parts[0], 10);
+      let parsedYear = parseInt(parts[1], 10);
+      if (isNaN(parsedMonth) || isNaN(parsedYear)) return null;
+      if (parsedYear < 100) parsedYear += 2000;
+      month = parsedMonth;
+      year = parsedYear;
+    } else {
+      const parsedMonth = parseInt(cleaned, 10);
+      if (isNaN(parsedMonth)) return null;
+      month = parsedMonth;
+      if (yearStr !== undefined && yearStr.trim() !== '') {
+        let parsedYear = parseInt(yearStr.trim(), 10);
+        if (isNaN(parsedYear)) return null;
+        if (parsedYear < 100) parsedYear += 2000;
+        year = parsedYear;
+      }
+    }
+  } else if (yearStr !== undefined && yearStr.trim() !== '') {
+    let parsedYear = parseInt(yearStr.trim(), 10);
+    if (isNaN(parsedYear)) return null;
+    if (parsedYear < 100) parsedYear += 2000;
+    year = parsedYear;
+  }
+
+  if (month < 1 || month > 12 || year < 2000 || year > 2100) {
+    return null;
+  }
+
+  return { year, month };
+}
+
+/**
+ * Generates an ANSI-formatted calendar grid string for Discord.
+ */
+export function generateMonthlyCalendarGrid(
+  year: number,
+  month: number,
+  eventDays: Set<number>,
+  todayDate?: { year: number; month: number; day: number } | null
+): string {
+  const { totalDays, startDayOfWeek, monthName } = getMonthDaysInfo(year, month);
+
+  const headerTitle = `${monthName.toUpperCase()} ${year}`;
+  const totalWidth = 35; // 7 columns * 5 width
+  const padLeft = Math.max(0, Math.floor((totalWidth - headerTitle.length) / 2));
+  const padRight = Math.max(0, totalWidth - headerTitle.length - padLeft);
+  const centeredHeader = ' '.repeat(padLeft) + headerTitle + ' '.repeat(padRight);
+
+  const lines: string[] = [];
+  lines.push(`\u001b[1;37m${centeredHeader}\u001b[0m`);
+  lines.push(`\u001b[1;34m Mon   Tue   Wed   Thu   Fri   Sat   Sun \u001b[0m`);
+
+  // Build grid of day slots (Monday=0 ... Sunday=6)
+  let currentDay = 1;
+  while (currentDay <= totalDays) {
+    const weekSlots: (number | null)[] = [];
+    for (let col = 0; col < 7; col++) {
+      if (lines.length === 2 && col < startDayOfWeek) {
+        weekSlots.push(null);
+      } else if (currentDay <= totalDays) {
+        weekSlots.push(currentDay);
+        currentDay++;
+      } else {
+        weekSlots.push(null);
+      }
+    }
+
+    // Row 1: Day numbers
+    let dateRow = '';
+    let hasEventsInWeek = false;
+    for (const slot of weekSlots) {
+      if (slot === null) {
+        dateRow += '     ';
+      } else {
+        const isToday =
+          todayDate &&
+          todayDate.year === year &&
+          todayDate.month === month &&
+          todayDate.day === slot;
+
+        if (isToday) {
+          const dayStr = `(${slot})`;
+          const paddedToday = dayStr.length === 3 ? ' ' + dayStr + ' ' : dayStr + ' ';
+          dateRow += `\u001b[1;31m${paddedToday}\u001b[0m`;
+        } else {
+          const dayStr = String(slot);
+          const padded = dayStr.length === 1 ? '  ' + dayStr + '  ' : ' ' + dayStr + '  ';
+          dateRow += padded;
+        }
+
+        if (eventDays.has(slot)) {
+          hasEventsInWeek = true;
+        }
+      }
+    }
+    lines.push(dateRow);
+
+    // Row 2: Event dots underneath dates with events
+    let dotRow = '';
+    for (const slot of weekSlots) {
+      if (slot !== null && eventDays.has(slot)) {
+        dotRow += '\u001b[1;36m  •  \u001b[0m';
+      } else {
+        dotRow += '     ';
+      }
+    }
+    lines.push(dotRow);
+  }
+
+  return '```ansi\n' + lines.join('\n') + '\n```';
+}
+
