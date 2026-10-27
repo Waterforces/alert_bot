@@ -268,7 +268,7 @@ export function generateMonthlyCalendarGrid(
     let dotRow = '';
     for (const slot of weekSlots) {
       if (slot !== null && eventDays.has(slot)) {
-        dotRow += '\u001b[1;36m  •  \u001b[0m';
+        dotRow += '\u001b[1;36m  ●  \u001b[0m';
       } else {
         dotRow += '     ';
       }

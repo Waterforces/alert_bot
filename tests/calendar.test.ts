@@ -72,8 +72,8 @@ describe('Calendar Utilities', () => {
       expect(grid).toContain('(27)');
       expect(grid).toContain('\u001b[1;31m'); // Red ANSI escape
 
-      // Check event dots exist
-      expect(grid).toContain('•');
+      // Check event dots exist (medium-large circle ●)
+      expect(grid).toContain('●');
     });
   });
 

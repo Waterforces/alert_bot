@@ -399,7 +399,7 @@ export async function handleDiscordInteraction(
         eventListContent = `📋 **Events in ${monthName} ${year} (${events.length}):**\n` + formattedEvents.join('\n');
       }
 
-      const description = `${calendarGrid}\n🔴 **(Date)** = Today  •  • = Has Event\n\n${eventListContent}`;
+      const description = `${calendarGrid}\n🔴 **(Date)** = Today  •  ● = Has Event\n\n${eventListContent}`;
 
       return respondEmbed({
         title: `🗓️ Family Calendar: ${monthName} ${year}`,
